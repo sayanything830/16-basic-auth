@@ -24,7 +24,7 @@ module.exports = function(router) {
       .then(user => {
         return user 
           ? user.comparePasswordHash(req.auth.password) 
-          : Promise.reject(new Error('Authorization failed, user not found.'))
+          : Promise.reject(new Error('Authorization failed, user not found.'));
       })
       .then(user => {
         delete req.headers.authorization;

@@ -1,6 +1,6 @@
 'use strict';
 
-const errorHandler = require('./error-handler');
+const errorHandler = require('./error-handler.js');
 
 module.exports = function(req, res, next) {
   let authHeaders = req.headers.authorization;
@@ -19,4 +19,5 @@ module.exports = function(req, res, next) {
   if(!req.auth.password) {
     return errorHandler(new Error('Auth failed, password required'), res);
   }
+  next();
 };
