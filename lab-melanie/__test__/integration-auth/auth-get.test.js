@@ -2,47 +2,54 @@
 
 const server = require('../../lib/server.js');
 const superagent = require('superagent');
-const Auth = require('../../model/auth.js');
 const mock = require('../lib/mock.js');
-const faker = require('faker');
 require('jest');
 
 describe('GET', function() {
   beforeAll(server.start);
   afterAll(server.stop);
-  // afterAll(mock.auth.removeAll);
-  afterAll(() => Promise.all([Auth.remove()]));
+  afterAll(mock.auth.removeAll);
 
 
   describe('Valid req/res', () => {
     beforeAll(() => {
-      return superagent.post(':4000/api/v1/signup')
-        .send(new Auth({
-          username: faker.internet.userName(),
-          password: faker.internet.password(),
-          email: faker.internet.email(),
-        }))
-        .then(res => this.response = res)
-        .then(() => {
+      return mock.auth.createOne()
+        .then(data => {
+          console.log(data);
+          this.authData = data;
           return superagent.get(':4000/api/v1/signin')
-            .auth(this.response.request._data.username, this.response.request._data.auth)
-            .then(res => this.user = res);
+            .auth(this.authData.auth.username, data.password)
+            .then(res => this.response = res);
         });
     });
-    // beforeAll(() => {
-    //   return mock.auth.createOne()
-    //     .then(data => {
-    //       console.log(data);
-    //       this.authData = data.auth;
-    //       return superagent.get('4000/api/v1/signin')
-    //         .auth(this.authData.username, data.password)
-    //         .then(res => this.response = res)
-    //         .catch(err => console.log(err));
-    //     });
-    // });
     it('should return a status of 200', () => {
-      console.log(this.user.body);
-      expect(this.res.status).toBe(200);
+      expect(this.response.status).toBe(200);
+    });
+    it('should return a token', () => {
+      expect(this.authData).toHaveProperty('token');
+    });
+  });
+  describe('Invalid req/res', () => {
+    it('should return a status 400 given no request body', () => {
+      return superagent.post(`:4000/api/v1/signup`)
+        .send({
+          username: 'me',
+          password: 'password',
+          email: 'hi',
+        })
+        .then((res) => {
+          this.response = res;
+          return superagent.get(`:4000/api/v1/signin`)
+            .auth('me', 'notmypassword')
+            .catch(err => {
+              this.errRes = err;
+              expect(this.errRes.status).toEqual(401);
+            });
+        });
+    });
+    it('should return a status 404 on an invalid path', () => {
+      return superagent.get(`:4000/api/v1/note`)
+        .catch(err => expect(err.status).toEqual(404));
     });
   });
 });

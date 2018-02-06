@@ -3,7 +3,6 @@
 const server = require('../../lib/server.js');
 const superagent = require('superagent');
 const Auth = require('../../model/auth.js');
-// const mock = require('../lib/mock.js');
 const faker = require('faker');
 require('jest');
 
@@ -17,7 +16,7 @@ describe('POST', function() {
       return superagent.post(':4000/api/v1/signup')
         .send(new Auth({
           username: faker.name.firstName(),
-          password: faker.hacker.phrase(),
+          password: faker.internet.password(),
           email: faker.internet.email(),
         }))
         .then(res => this.response = res);
