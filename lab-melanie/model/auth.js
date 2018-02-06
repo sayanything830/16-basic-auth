@@ -34,7 +34,7 @@ Auth.methods.comparePasswordHash = function(password) {
 
 Auth.methods.generateCompareHash = function() {
   this.compareHash = crypto.randomBytes(32).toString('hex');
-  return this.save()
+  return this.save() // makes sure the compare hash is unique
     .then(() => Promise.resolve(this.compareHash))
     .catch(() => this.generateCompareHash()); // possible infinite loop
 };
