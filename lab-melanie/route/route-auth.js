@@ -10,7 +10,7 @@ module.exports = function(router) {
     let pw = req.body.password;
     delete req.body.password;
 
-    let user = new Auth(req.body)
+    let user = new Auth(req.body);
 
     user.generatePasswordHash(pw) 
       .then(newUser => newUser.save())

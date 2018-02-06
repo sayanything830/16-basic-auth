@@ -9,13 +9,27 @@ const mock = module.exports = {};
 // Auth Mocks - One, Many, RemoveAll
 mock.auth = {};
 
-mock.auth.createOne = () => new Auth({
-  username: faker.name.firstName(),
-  password: faker.hacker.phrase(),
-  email: faker.internet.email(),
-}).save();
+mock.auth.createOne = () => {
+  let result = {};
+  result.password = faker.internet.password();
 
-mock.auth.createMany = n =>
-  Promise.all(new Array(n).fill(0).map(mock.auth.createOne));
+  let auth = new Auth({
+    username: faker.internet.userName(),
+    email: faker.internet.email(),
+  });
+
+  return auth.generatePasswordHash(result.password)
+    .then(auth => {
+      result.auth = auth;
+      return auth.save();
+    })
+    .then(auth => auth.generateToken())
+    .then(token => {
+      result.token = token;
+      return result;
+    });
+};
+
+
 
 mock.auth.removeAll = () => Promise.all([Auth.remove()]);
